@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RSA Encryption/Decryption</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-800 p-8">
+    {% if g.error %}
+        <div class="text-red-500">{{g.error}}</div>
+    {% endif %}
+    <div class="flex space-x-5 items-start">
+        <h1 class="text-xl font-bold mb-4 text-sky-50">RSA Encryption/Decryption</h1>
+        <form action="/reset" method="post">
+            <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+              Reset Session variables
+            </button>
+        </form>
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+        <!-- Encryption Section -->
+        <div class="p-8 border-4 border-gray-900 rounded bg-gray-600">
+            <h1 class="text-xl font-bold mb-4 text-sky-50">Calculate p and q</h1>
+            <form action="/calculate/pq" method="POST" class="mb-4">
+                <div class="mb-2">
+                    <label for="message" class="block mb-2 text-sky-50">N:</label>
+                    <input type="number" id="n_value" name="n_value" value="{{g.n_value}}" class="input border border-gray-300 p-2 w-full">
+                </div>
+                <input type="submit" name="operation" value="Calculate P and Q" class="btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            </form>
+            {% if g.p_value %}
+                <div class="mb-4">
+                    <h2 class="text-md font-semibold text-sky-50">Calculated P and Q:</h2>
+                    <p class="text-sky-50">P is {{ g.p_value }}</p>
+                    <p class="text-sky-50">Q is {{ g.q_value }}</p>
+                    <p class="text-sky-50">Amount of time busy finding P and Q: is {{ g.taken_time }}</p>
+                </div>
+
+                <h2 class="text-lg font-semibold mb-2 text-sky-50">Calculate E:</h2>
+                <form action="/calculate/e" method="POST">
+                    <div class="mb-2">
+                        <label for="p_value" class="block mb-2 text-sky-50">P:</label>
+                        <input type="number" id="p_value" name="p_value" value="{{ g.p_value }}" class="input border border-gray-300 p-2 w-full">
+                    </div>
+                    <div class="mb-2">
+                        <label for="q_value" class="block mb-2 text-sky-50">Q:</label>
+                        <input type="number" id="q_value" name="q_value" value="{{ g.q_value }}" class="input border border-gray-300 p-2 w-full">
+                    </div>
+                    <input type="number" hidden="hidden" name="n_value" value="{{ g.n_value }}">
+                    <input type="submit" name="operation" value="Calculate E" class="btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                </form>
+            {% endif %}
+
+            {% if g.e_value %}
+                <h2 class="text-md font-semibold text-sky-50 mt-2">Calculated E:</h2>
+                <p class="text-sky-50">E is {{ g.e_value }}</p>
+
+                <h1 class="text-lg font-semibold mb-2 text-sky-50">Encrypt Message:</h1>
+                <form action="/encrypt" method="POST">
+                    <input type="number" hidden="hidden" name="p_value" value="{{ g.p_value }}">
+                    <input type="number" hidden="hidden" name="q_value" value="{{ g.q_value }}">
+                    <div class="mb-2">
+                        <label for="m_value" class="block mb-2 text-sky-50">Message (M):</label>
+                        <input type="text" id="m_value" name="m_value" value="{{ g.m_value }}" class="input border border-gray-300 p-2 w-full">
+                    </div>
+                    <div class="mb-2">
+                        <label for="e_value" class="block mb-2 text-sky-50">E:</label>
+                        <input type="number" id="e_value" name="e_value" value="{{ g.e_value }}" class="input border border-gray-300 p-2 w-full">
+                    </div>
+                    <input type="submit" value="Encrypt message" class="btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                </form>
+            {% endif %}
+
+            {% if g.encrypted_message_str %}
+                 <h2 class="text-md font-semibold text-sky-50 mt-2">Encrypted message:</h2>
+                <p class="text-sky-50">The message after encryption: {{ g.encrypted_message_str }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Decryption Section -->
+        <div class="p-8 border-4 border-gray-900 rounded bg-gray-600">
+            <h1 class="text-xl font-bold mb-4 text-sky-50">Calculate D for Decryption:</h1>
+            <form action="/calculate/d" method="POST" class="mb-4">
+                <div class="mb-2">
+                    <label for="n_value" class="block mb-2 text-sky-50">N:</label>
+                    <input type="number" id="n_value" name="n_value" value="{{ g.n_value }}" class="input border border-gray-300 p-2 w-full">
+                </div>
+                <div class="mb-2">
+                    <label for="e_value" class="block mb-2 text-sky-50">E:</label>
+                    <input type="number" id="e_value" name="e_value" value="{{ g.e_value }}" class="input border border-gray-300 p-2 w-full">
+                </div>
+                <input type="submit" value="Calculate D" class="btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            </form>
+
+            {% if g.d_value %}
+                <p class="text-sky-50">d is {{ g.d_value }}</p>
+
+                <h1 class="text-lg font-semibold mb-2 text-sky-50">Decrypt Cipher:</h1>
+                <form action="/decrypt" method="POST">
+                    <div class="mb-2">
+                        <label for="c_value" class="block mb-2 text-sky-50">Cipher Text (c):</label>
+                        <input type="text" id="c_value" name="c_value" value="{{ g.encrypted_message_str }}" class="input border border-gray-300 p-2 w-full">
+                    </div>
+                    <div class="mb-2">
+                        <label for="n_value_decrypt" class="block mb-2 text-sky-50">N:</label>
+                        <input type="number" id="n_value_decrypt" name="n_value" value="{{ g.n_value }}" class="input border border-gray-300 p-2 w-full">
+                    </div>
+                    <div class="mb-2">
+                        <label for="d_value" class="block mb-2 text-sky-50">D:</label>
+                        <input type="number" id="d_value" name="d_value" value="{{ g.d_value }}" class="input border border-gray-300 p-2 w-full">
+                    </div>
+                    <input type="submit" value="Decrypt cypher" class="btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                </form>
+            {% endif %}
+
+            {% if g.decrypted_message %}
+                <p class="text-sky-50">Message after decryption is: {{ g.decrypted_message }}</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
